@@ -43,21 +43,21 @@ float WrapFloat (float inValue) { return inValue + 0.1f; }
 
 struct OM_CWRAP_VISIBILITY_DEFAULT OmList
 {
-    unsigned int mySize;
-    float * myList;
+    unsigned int size;
+    float * data;
 };
 
 OM_CWRAP_API
 void WrapList (const OmList * inValue)
 {
-    std::cout << "list size: " << inValue->mySize << "\n";
-    std::cout << "list pointer: " << inValue->myList << "\n";
+    std::cout << "list size: " << inValue->size << "\n";
+    std::cout << "list pointer: " << inValue->data << "\n";
     
     std::cout << "list values: ";
-    for( int i = 0; i < inValue->mySize; i++ )
+    for( int i = 0; i < inValue->size; i++ )
     {
-        std::cout << " " << inValue->myList[i];
-        inValue->myList[i] *= 2;
+        std::cout << " " << inValue->data[i];
+        inValue->data[i] *= 2;
     }
     std::cout << "\n \n";
 }
@@ -67,7 +67,7 @@ void WrapList (const OmList * inValue)
 struct OM_CWRAP_VISIBILITY_DEFAULT OmAudioBuffer
 {
     unsigned int numChannels;  // < number of channels
-    unsigned long numSamples;  // < number of samples (for each channel)
+    unsigned int numSamples;  // < number of samples (for each channel)
     float ** data;             // < data[ channelIndex ][ sampleIndex ]
 };
 
@@ -81,13 +81,13 @@ void WrapSound(OmAudioBuffer * const bufferIn)
     std::cout << "num samples per channel: " << bufferIn->numSamples << "\n";
     std::cout << "audio data (pointer): " << bufferIn->data << "\n";
     
-    std::cout << "audio data (values):";
+    // std::cout << "audio data (values):";
     for( int i = 0; i < bufferIn->numChannels; i++ )
     {
-        std::cout << "\nchannel " << i << ": \n";
+        // std::cout << "\nchannel " << i << ": \n";
         for( int j = 0; j < bufferIn->numSamples; j++ )
         {
-            std::cout << " " << bufferIn->data[i][j];
+            // std::cout << " " << bufferIn->data[i][j];
             bufferIn->data[i][j] *= 0.5f;
         }
     }

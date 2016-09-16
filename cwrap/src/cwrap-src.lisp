@@ -49,8 +49,8 @@
 
 ;;;======================================================================
 (cffi:defcstruct list-struct
-  ( mySize :unsigned-int )
-  ( myList :pointer )
+  ( size :unsigned-int )
+  ( data :pointer )
 )
 
 (cffi::defctype list-type (:pointer (:struct list-struct)))
@@ -62,15 +62,15 @@
 ; convert lisp list to c-ready list structure, allocating foreign values
 (defun allocate-list (list-in) 
   (let* ( (list-type-in (cffi::foreign-alloc 'list-type)) )
-      (setf (cffi:foreign-slot-value list-type-in '(:struct list-struct) 'mySize) (length list-in))
-      (setf (cffi:foreign-slot-value list-type-in '(:struct list-struct) 'myList) (cffi:foreign-alloc :float :initial-contents list-in))
+      (setf (cffi:foreign-slot-value list-type-in '(:struct list-struct) 'size) (length list-in))
+      (setf (cffi:foreign-slot-value list-type-in '(:struct list-struct) 'data) (cffi:foreign-alloc :float :initial-contents list-in))
       list-type-in
     )
 )
 
 ; free pointer values allocated in allocate-list
 (defun free-list (list-type-in)
-    ( cffi::foreign-free (cffi:foreign-slot-value list-type-in '(:struct list-struct) 'myList) )
+    ( cffi::foreign-free (cffi:foreign-slot-value list-type-in '(:struct list-struct) 'data) )
     ( cffi::foreign-free list-type-in )
 )
 
@@ -93,7 +93,7 @@
           
           ; get modified list (read n values from pointer)
           (setq list-out (loop for i below (length list-in) 
-            collect (cffi::mem-aref (cffi:foreign-slot-value list-type-in '(:struct list-struct) 'myList) :float i) ) )
+            collect (cffi::mem-aref (cffi:foreign-slot-value list-type-in '(:struct list-struct) 'data) :float i) ) )
 
           ; free pointers
           (free-list list-type-in)
@@ -108,7 +108,8 @@
 
 (cffi:defcstruct audiobuffer-struct
   ( numChannels :unsigned-int )
-  ( numSamples  :unsigned-long )
+  ( numSamples  :unsigned-int )
+  ; ( numSamples  :unsigned-long ) ; we should use that instead of unsigned-int, yet it raises unexpected malloc issues after a few repetitions 
   ; ( interleaved :boolean )
   ( data 		:pointer )
  )
@@ -134,7 +135,7 @@
 
 ; free audio buffer
 (defun free-audio-buffer (audiob numCh) 
-  (om-audio::om-free-sound-buffer (cffi:foreign-slot-value audiob '(:struct audiobuffer-struct) 'data) (- numCh 1 ) )
+  (om-audio::om-free-sound-buffer (cffi:foreign-slot-value audiob '(:struct audiobuffer-struct) 'data) numCh )
   ; (cffi::foreign-free (cffi:foreign-slot-value audiob '(:struct audiobuffer-struct) 'data))
   (cffi::foreign-free audiob)
 )
@@ -145,8 +146,9 @@
     (let  ( (numdat (n-samples om-sound)) )
           
           (let ((channel-ptr (om-read-ptr (om-sound-buffer-ptr b) channel :pointer)))
-          (loop for i from 0 to numdat collect
-                (om-read-ptr channel-ptr i :float)))
+          (loop for i from 0 to (1- numdat) collect
+                (coerce (om-read-ptr channel-ptr i :float) 'single-float))
+          )
         
     )))
 
