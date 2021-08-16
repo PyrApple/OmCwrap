@@ -11,7 +11,7 @@ File Content
 ------------
 
 * Build: Xcode output (amongst which the Cwrap dynamic library)
-* cwrap: Opem Muic package folder
+* cwrap: Open Music package folder
 * OmCwrap: C library source code 
 
 
